@@ -1,6 +1,5 @@
 from queue import Queue as Q
 from mtcnn import MTCNN
-from multiprocessing import Process, Queue
 import cv2
 
 class Recognizer_video:
@@ -8,17 +7,16 @@ class Recognizer_video:
         self.videos = []
         self.resultQ = Q()
         self.detector = MTCNN()
-        self.color = (0,0,255)
+        self.color = (0, 0, 255)
         self.thickness = 2
 
     def setVideosFromUrls(self, urls):
-        index = 1
-        for i in urls:
-            print(str(index) + 'loading...')
-            temp = cv2.VideoCapture(i)
-            self.videos.append(temp)
-            print(str(index) + ' success')
-            index += 1
+        for i in enumerate(urls):
+            print(f'{str(i[0])} loading...')
+
+            self.videos.append(cv2.VideoCapture(i[1]))
+
+            print(f'{str(i[0])} success')
     
     def setColor(self, color):
         for i in color:
@@ -27,7 +25,8 @@ class Recognizer_video:
                 return
 
         self.color = color
-    
+
+    # 사각형 두께
     def setThickness(self,thickness):
         if thickness <= 0:
             print('thickness value error')
@@ -35,10 +34,10 @@ class Recognizer_video:
 
         self.thickness = thickness
 
-    def recognizeHumanFaces(self, roomN, drawBox):
-        ret, frame = self.videos[roomN-1].read()
+    def recognizeHumanFaces(self, roomN, drawBox) -> str:
+        ret, frame = self.videos[roomN - 1].read()
 
-        if ret == True:
+        if ret is True:
 
             location = self.detector.detect_faces(frame)
             humansN = len(location)
@@ -46,9 +45,13 @@ class Recognizer_video:
             if humansN > 0 and drawBox:
 
                 for face in location:
-                    x,y,w,h = face['box']
-                    cv2.rectangle(frame,(x,y),(x+w,y+h),self.color,self.thickness)
+                    x, y, w, h = face['box']
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), self.color, self.thickness)
 
                 cv2.imshow("Room" + str(roomN), frame)
-        
+
             return humansN
+
+a = Recognizer_video()
+a.videos = {1: "127.0.0.1",
+            2: "127.0.0.1"}
