@@ -9,7 +9,7 @@ class Recognizer:
         self.detector = MTCNN()
         self.locations = None
         self.saveCount = 0
-        self.color = (0,0,255) # b,g,r
+        self.color = (0, 0, 255) # b, g, r
         self.thickness = 2
 
     def setColor(self, color):
@@ -42,7 +42,7 @@ class Recognizer:
                     x,y,w,h = face['box']
                     cv2.rectangle(image,(x,y),(x+w,y+h),self.color,self.thickness)
 
-                cv2.imwrite(str(self.saveCount)+'.jpg', image)
+                cv2.imwrite(str(self.saveCount) + '.jpg', image)
                 self.saveCount += 1
 
         return len(self.locations)
@@ -61,7 +61,7 @@ class Recognizer:
             self.imageQ = Queue()
             self.roomNQ = Queue()
             self.size = 0
-        
+
         def add(self, roomN, image):
             self.roomNQ.put(roomN)
             self.imageQ.put(image)
