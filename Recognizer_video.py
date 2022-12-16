@@ -1,44 +1,33 @@
-from queue import Queue as Q
+from queue import Queue
 from mtcnn import MTCNN
 import cv2
 
 class Recognizer_video:
     def __init__(self):
-        self.videos = []
-        self.resultQ = Q()
+        self.videos = {}
+        self.resultQ = Queue()
         self.detector = MTCNN()
         self.color = (0, 0, 255)
         self.thickness = 2
-
-    def setVideosFromUrls(self, urls):
-        for i in enumerate(urls):
-            print(f'{str(i[0])} loading...')
-
-            self.videos.append(cv2.VideoCapture(i[1]))
-
-            print(f'{str(i[0])} success')
     
     def setColor(self, color):
         for i in color:
             if i < 0:
-                print('color value error')
-                return
+                return 'color value error'
 
         self.color = color
 
     # 사각형 두께
-    def setThickness(self,thickness):
+    def setThickness(self, thickness):
         if thickness <= 0:
-            print('thickness value error')
-            return
+            return 'thickness value error'
 
         self.thickness = thickness
 
-    def recognizeHumanFaces(self, roomN, drawBox) -> str:
-        ret, frame = self.videos[roomN - 1].read()
+    def recognizeHumanFaces(self, roomN: str, drawBox):
+        ret, frame = self.videos[roomN].read()
 
         if ret is True:
-
             location = self.detector.detect_faces(frame)
             humansN = len(location)
 
@@ -51,7 +40,3 @@ class Recognizer_video:
                 cv2.imshow("Room" + str(roomN), frame)
 
             return humansN
-
-a = Recognizer_video()
-a.videos = {1: "127.0.0.1",
-            2: "127.0.0.1"}

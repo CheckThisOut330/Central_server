@@ -1,11 +1,14 @@
-from queue import Queue
 from mtcnn import MTCNN
 import cv2
+import numpy as np
+from PIL import Image
+import urllib
 
 class Recognizer:
-    def __init__(self) :
-        self.roomQ = Recognizer.RoomQueue()
-        self.resultQ = Queue()
+    def __init__(self):
+        self.roomIp = {} # {"1": "127.0.0.1", "2": "127.0.0.1"}
+        self.roomQ = {} # {"1": image, "2": image}
+        self.resultQ = {} # {"1": 2, "2": 5}
         self.detector = MTCNN()
         self.locations = None
         self.saveCount = 0
@@ -15,23 +18,21 @@ class Recognizer:
     def setColor(self, color):
         for i in color:
             if i < 0:
-                print('color value error')
-                return
+                return 'color value error'
 
         self.color = color
     
-    def setThickness(self,thickness):
+    def setThickness(self, thickness):
         if thickness <= 0:
-            print('thickness value error')
-            return
+            return 'thickness value error'
 
         self.thickness = thickness
 
-    def addImage(self, roomN ,image):
-        self.roomQ.add(roomN,image)
-    
+    def addImage(self, roomN: str, image):
+        self.roomQ[roomN] = image
+
     def recognizeHumanFaces(self, drawBox):
-        roomN, image = self.roomQ.pop()
+        image = self.roomQ.pop(list(self.roomQ)[0])
         self.locations = self.detector.detect_faces(image)
 
         if drawBox:
@@ -39,37 +40,30 @@ class Recognizer:
                 image = image.copy()
 
                 for face in self.locations:
-                    x,y,w,h = face['box']
-                    cv2.rectangle(image,(x,y),(x+w,y+h),self.color,self.thickness)
+                    x, y, w, h = face['box']
+                    cv2.rectangle(image, (x, y), (x + w, y + h), self.color, self.thickness)
 
                 cv2.imwrite(str(self.saveCount) + '.jpg', image)
                 self.saveCount += 1
 
         return len(self.locations)
-    
-    def run(self, drawBox):
-        while True:
-            sizeOfQ = self.roomQ.sizeOfQ()
-            if  sizeOfQ <= 0:
-                continue
 
-            facesN = self.recognizeHumanFaces(drawBox)
-            self.resultQ.put(facesN)
-            
-    class RoomQueue:
-        def __init__(self):
-            self.imageQ = Queue()
-            self.roomNQ = Queue()
-            self.size = 0
+    def run(self, drawBox: bool):
+        # 결과 초기화
+        self.resultQ = {}
 
-        def add(self, roomN, image):
-            self.roomNQ.put(roomN)
-            self.imageQ.put(image)
-            self.size += 1
+        for num in self.roomIp:
+            # print(num)
+            # 이미지 받아오기
+            try:
+                image = Image.open(urllib.request.urlopen(f"http://{self.roomIp[num]}/capture"))
+                self.addImage(num, np.array(image))
+            except Exception as e:
+                print(e)
+            else:
+                # 몇명인지 체크
+                facesN = self.recognizeHumanFaces(drawBox)
+                self.resultQ[num] = facesN
 
-        def pop(self):
-            self.size -= 1
-            return self.roomNQ.get(), self.imageQ.get()
-        
-        def sizeOfQ(self):
-            return (int)(self.size)
+        # 리턴
+        return self.resultQ
