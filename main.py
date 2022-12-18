@@ -4,9 +4,9 @@ from Recognizer import Recognizer
 
 class Main:
     def __init__(self):
-        self.cam_ip = {"1": "192.168.15.89",
-                       "2": "192.168.15.204"}
-        self.server_link = "http://119.63.246.253:8000"
+        self.cam_ip = {"1": "192.168.1.1",
+                       "2": "192.168.1.2"}
+        self.server_link = "http://127.0.0.1"
 
     def run(self):
         while True:
